@@ -50,7 +50,11 @@ public class JwtUtil {
         return extractClaims(token).getSubject();
     }
 
-    public boolean isTokenvalid(String token){
+    public String extractRole(String token) {
+    return (String) extractClaims(token).get("role");
+}
+
+    public boolean isTokenValid(String token){
         try{
             return extractClaims(token).getExpiration().after(new Date());
         }catch(Exception e){

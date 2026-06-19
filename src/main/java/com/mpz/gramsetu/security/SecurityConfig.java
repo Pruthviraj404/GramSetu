@@ -15,47 +15,53 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
+        private final JwtAuthFilter jwtAuthFilter;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .formLogin(form -> form.disable())
-                .httpBasic(basic -> basic.disable())
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .csrf(csrf -> csrf.disable())
+                                .formLogin(form -> form.disable())
+                                .httpBasic(basic -> basic.disable())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/api/auth/**").permitAll()
 
-                        // Citizen routes — specific first
-                        .requestMatchers(HttpMethod.GET, "/api/taxes/my").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/taxes/my/filter").authenticated()
+                                                // Citizen routes — specific first
+                                                .requestMatchers(HttpMethod.GET, "/api/taxes/my").authenticated()
+                                                .requestMatchers(HttpMethod.GET, "/api/taxes/my/filter").authenticated()
 
-                        // Payment routes
-                        .requestMatchers(HttpMethod.POST, "/api/payments").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/payments/history").authenticated()
-    
+                                                // Payment routes
+                                                .requestMatchers(HttpMethod.POST, "/api/payments").authenticated()
+                                                .requestMatchers(HttpMethod.GET, "/api/payments/history")
+                                                .authenticated()
 
-                        // Admin tax routes
-                        .requestMatchers(HttpMethod.POST, "/api/taxes").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/taxes").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/taxes/**").hasRole("ADMIN")
+                                                // Complaint routes
+                                                .requestMatchers(HttpMethod.POST, "/api/complaints").authenticated()
+                                                .requestMatchers(HttpMethod.GET, "/api/complaints/my").authenticated()
+                                                .requestMatchers(HttpMethod.GET, "/api/complaints").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PUT, "/api/complaints/**").hasRole("ADMIN")
 
-                        // Admin user routes
-                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole("ADMIN")
+                                                // Admin tax routes
+                                                .requestMatchers(HttpMethod.POST, "/api/taxes").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/api/taxes").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PUT, "/api/taxes/**").hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.GET, "/api/payments").hasRole("ADMIN")
+                                                // Admin user routes
+                                                .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.POST, "/api/users").hasRole("ADMIN")
+                                                .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole("ADMIN")
 
-                        // Waterman routes
-                        .requestMatchers("/api/water-alerts/**").hasAnyRole("WATERMAN", "ADMIN")
+                                                .requestMatchers(HttpMethod.GET, "/api/payments").hasRole("ADMIN")
 
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                                                // Waterman routes
+                                                .requestMatchers("/api/water-alerts/**").hasAnyRole("WATERMAN", "ADMIN")
 
-        return http.build();
-    }
+                                                .anyRequest().authenticated())
+                                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+                return http.build();
+        }
 }

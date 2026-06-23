@@ -41,7 +41,7 @@ public class CertificateService {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
 
         CertificateApplication application = CertificateApplication.builder()
-                .user(user).certificateType(request.certificateType()).documenUrl(request.documenUrl())
+                .user(user).certificateType(request.certificateType()).documentUrl(request.documentUrl())
                 .status(CertificateStatus.PENDING).build();
 
         return toResponse(certificateRepository.save(application));
@@ -206,7 +206,7 @@ public class CertificateService {
                 app.getUser() != null ? app.getUser().getName() : null,
 
                 app.getCertificateType(),
-                app.getDocumenUrl(),
+                app.getDocumentUrl(),
                 app.getStatus(),
                 app.getCertificateNumber(),
                 app.getGeneratedCertificateUrl(),

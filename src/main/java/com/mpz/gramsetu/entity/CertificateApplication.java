@@ -29,7 +29,7 @@ public class CertificateApplication {
     private CertificateType certificateType;
 
     @Column(nullable = false)
-    private String documenUrl;
+    private String documentUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -2,7 +2,7 @@ package com.mpz.gramsetu.entity;
 
 public enum Role {
     ADMIN,
-    SECRETARY,
+    WATERMAN,
     CITIZEN
     
 }

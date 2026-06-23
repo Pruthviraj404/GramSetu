@@ -11,7 +11,7 @@ public record CertificateRequest (
     CertificateType certificateType,
 
     @NotBlank(message = "Document URL is required")
-    String documenUrl
+    String documentUrl
 
 
 ){}

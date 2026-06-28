@@ -1,10 +1,13 @@
-src/
-uploads/
-pom.xml
-mvnw
-mvnw.cmd
-*.class
-*.jar
-target/
-node_modules/
-build/
+# Backend build files
+gramsetu_backend/target/
+gramsetu_backend/uploads/
+gramsetu_backend/*.jar
+gramsetu_backend/*.class
+
+# Frontend
+gramsetu_frontend/node_modules/
+gramsetu_frontend/build/
+
+# Environment
+.env
+*.env

@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* If you need your custom colors (primary/primaryDark) back, you can define them here using standard CSS variables */
+@theme {
+  --color-primary: #059669;      /* emerald-600 */
+  --color-primary-dark: #047857; /* emerald-700 */
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+}

@@ -4,7 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import CitizenDashboard from "./pages/citizen/CitizenDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import WatermanDashboard from "./pages/waterman/WatermanDashboard";
+import ManageWaterAlerts from "./pages/waterman/ManageWaterAlerts";
 import TaxPage from "./pages/citizen/TaxPage";
 import ComplaintPage from "./pages/citizen/ComplaintPage";
 import CertificatePage from "./pages/citizen/CertificatePage";
@@ -81,7 +81,7 @@ const App = () => {
             <ProtectedRoute allowedRoles={["WATERMAN"]}>
               <AuthenticatedLayout>
                 <Routes>
-                  <Route path="dashboard" element={<WatermanDashboard />} />
+                  <Route path="dashboard" element={<ManageWaterAlerts/>} />
                 </Routes>
               </AuthenticatedLayout>
             </ProtectedRoute>

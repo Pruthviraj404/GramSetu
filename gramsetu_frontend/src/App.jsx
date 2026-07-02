@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Login from "./pages/Login";
+import Login from "./pages/auth/Login";
+import Signup from "./pages/auth/Signup";
 import CitizenDashboard from "./pages/citizen/CitizenDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageWaterAlerts from "./pages/waterman/ManageWaterAlerts";
@@ -87,7 +88,10 @@ const App = () => {
             </ProtectedRoute>
           } />
 
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Navigate to="/login" replace />} />
+          <Route path="/signup" element={<Signup/>}/>
+          <Route path="/" element={<Navigate to="/login"/>}/>
+          
 
 
 

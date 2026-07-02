@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import API from "../api/axios";
-
+import { useAuth } from "../../context/AuthContext";
+import API from "../../api/axios";
 const Login = () => {
 
     const [step, setStep] = useState(1);
@@ -142,6 +141,21 @@ const Login = () => {
                         </div>
                     </div>
                 )}
+                <div className="mt-6 text-center border-t pt-5">
+                    <p className="text-sm text-gray-500">
+                        Don't have an account?
+                    </p>
+
+                    <button
+                        onClick={() => navigate("/signup")}
+                        className="mt-2 text-emerald-600 font-semibold hover:text-emerald-700 hover:underline"
+                    >
+                        Create a New Account
+                    </button>
+                </div>
+                
+
+
             </div>
         </div>
     );

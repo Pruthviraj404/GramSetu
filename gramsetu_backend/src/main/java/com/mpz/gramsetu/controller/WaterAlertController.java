@@ -39,6 +39,7 @@ public class WaterAlertController {
     @GetMapping("/my")
     public ResponseEntity<List<WaterAlertResponse>> getMyAreaAlerts() {
         User citizen = getLoggedInUser();
+        
         return ResponseEntity.ok(waterAlertService.getMyAreaAlerts(citizen));
     }
 

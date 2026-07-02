@@ -87,6 +87,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/notifications").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/api/notifications/admin/all").hasRole("ADMIN")
 
+                    .requestMatchers(HttpMethod.GET, "/api/areas").permitAll()
+
                     // ===== Notifications — citizen =====
                     .requestMatchers(HttpMethod.GET, "/api/notifications/my").authenticated()
                     .requestMatchers(HttpMethod.GET, "/api/notifications/*").authenticated()

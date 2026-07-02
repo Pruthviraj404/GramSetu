@@ -31,7 +31,9 @@ public class WaterAlertService {
 
     // FR-24: Citizens in the selected area receive alerts
     public List<WaterAlertResponse> getMyAreaAlerts(User citizen) {
+        System.out.println(citizen.getArea());
         return waterAlertRepository.findByAreaIgnoreCaseOrderByCreatedAtDesc(citizen.getArea())
+
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

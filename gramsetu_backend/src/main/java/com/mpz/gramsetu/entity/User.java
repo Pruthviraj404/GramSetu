@@ -1,7 +1,5 @@
 package com.mpz.gramsetu.entity;
 
-
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,8 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 
-
-public class User  implements UserDetails {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,8 +28,13 @@ public class User  implements UserDetails {
 
     private String name;
 
-    @Column(unique = true,nullable = false)
+    @Column(unique = true, nullable = false)
+    private String email;
+
+    @Column(unique = true, nullable = false)
     private String mobileNumber;
+
+    private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -41,23 +43,26 @@ public class User  implements UserDetails {
     private String area;
     private String address;
 
+    @Column(name = "is_approved", nullable = false)
+    @Builder.Default
+    private boolean isApproved = false;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
-      @Override
+    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
     public String getPassword() {
-        return null;
+        return this.password;
     }
 
     @Override
     public String getUsername() {
-        return mobileNumber;
+        return this.mobileNumber;
     }
 
     @Override
@@ -77,11 +82,7 @@ public class User  implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.isApproved;
     }
-    
-    
 
-
-    
 }

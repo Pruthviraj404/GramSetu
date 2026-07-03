@@ -42,13 +42,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String mobile = jwtUtil.extractMobile(token);
-        String role = jwtUtil.extractRole(token);  // extract role from token
+        String role = jwtUtil.extractRole(token);
 
         User user = userRepository.findByMobileNumber(mobile).orElse(null);
 
         if (user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // manually set ROLE_ prefix
-            SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+
+            // Block unapproved users
+            if (!user.isApproved()) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType("application/json");
+                response.getWriter().write(
+                    "{\"error\": \"Your account is pending admin approval.\"}"
+                );
+                return;
+            }
+
+            SimpleGrantedAuthority authority =
+                    new SimpleGrantedAuthority("ROLE_" + role);
 
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(

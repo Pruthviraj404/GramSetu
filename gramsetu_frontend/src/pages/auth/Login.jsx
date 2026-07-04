@@ -50,8 +50,13 @@ const Login = () => {
         setLoading(true);
         try {
             const res = await API.post("/api/auth/verify-otp", { mobileNumber: mobile, otp });
-            const { token, name, role } = res.data;
-            login(token, { name, role, mobile });
+            const { token, name, role, isApproved } = res.data;
+            login(token, {
+                name: name,
+                role: role,
+                mobile: mobile,
+                isApproved: isApproved  
+            });
 
             if (role == "ADMIN") navigate("/admin/dashboard");
             else if (role == "WATERMAN") navigate("/waterman/dashboard");
@@ -153,7 +158,7 @@ const Login = () => {
                         Create a New Account
                     </button>
                 </div>
-                
+
 
 
             </div>

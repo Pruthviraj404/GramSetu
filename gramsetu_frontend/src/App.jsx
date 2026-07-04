@@ -3,6 +3,7 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import AccountApprovalGuard from "./pages/auth/AccountApprovalGuard";
 import CitizenDashboard from "./pages/citizen/CitizenDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageWaterAlerts from "./pages/waterman/ManageWaterAlerts";
@@ -16,6 +17,7 @@ import ManageComplaints from "./pages/admin/ManageComplaints";
 import ManageCertificates from "./pages/admin/ManageCertificates";
 import SendNotification from "./pages/admin/SendNotification";
 import Navbar from "./components/Navbar";
+import AdminUserApproval from "./pages/admin/AdminUserApproval";
 
 
 const AuthenticatedLayout = ({ children }) => (
@@ -46,16 +48,22 @@ const App = () => {
 
           <Route path="/citizen/*" element={
             <ProtectedRoute allowedRoles={["CITIZEN"]}>
-              <AuthenticatedLayout>
-                <Routes>
-                  <Route path="dashboard" element={<CitizenDashboard />} />
-                  <Route path="taxes" element={<TaxPage />} />
-                  <Route path="complaints" element={<ComplaintPage />} />
-                  <Route path="certificates" element={<CertificatePage />} />
-                  <Route path="notifications" element={<NotificationsPage />} />
-                </Routes>
+              <AccountApprovalGuard>
+                <AuthenticatedLayout>
 
-              </AuthenticatedLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<CitizenDashboard />} />
+                    <Route path="taxes" element={<TaxPage />} />
+                    <Route path="complaints" element={<ComplaintPage />} />
+                    <Route path="certificates" element={<CertificatePage />} />
+                    <Route path="notifications" element={<NotificationsPage />} />
+                    <Route path="*" element={<Navigate to="dashboard" replace/>}/>
+                    
+                  </Routes>
+
+
+                </AuthenticatedLayout>
+              </AccountApprovalGuard>
             </ProtectedRoute>
           } />
 
@@ -65,6 +73,7 @@ const App = () => {
               <AuthenticatedLayout>
                 <Routes>
                   <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="approval" element={<AdminUserApproval />} />
                   <Route path="users" element={<ManageUsers />} />
                   <Route path="taxes" element={<ManageTaxes />} />
                   <Route path="complaints" element={<ManageComplaints />} />
@@ -82,16 +91,16 @@ const App = () => {
             <ProtectedRoute allowedRoles={["WATERMAN"]}>
               <AuthenticatedLayout>
                 <Routes>
-                  <Route path="dashboard" element={<ManageWaterAlerts/>} />
+                  <Route path="dashboard" element={<ManageWaterAlerts />} />
                 </Routes>
               </AuthenticatedLayout>
             </ProtectedRoute>
           } />
 
           <Route path="/login" element={<Navigate to="/login" replace />} />
-          <Route path="/signup" element={<Signup/>}/>
-          <Route path="/" element={<Navigate to="/login"/>}/>
-          
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/" element={<Navigate to="/login" />} />
+
 
 
 

@@ -62,7 +62,7 @@ public class AuthController {
 
         String token = jwtUtil.generateToken(user.getMobileNumber(), user.getRole().name());
 
-        return ResponseEntity.ok(new AuthResponse(token, user.getRole().name(), user.getName()));
+        return ResponseEntity.ok(new AuthResponse(token, user.getRole().name(), user.getName(),user.isApproved()));
 
     }
 

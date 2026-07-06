@@ -1,55 +1,117 @@
-
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Users, 
-  BarChart3, 
-  Wrench, 
-  FolderLock, 
+import {
+  Users,
+  BarChart3,
+  Wrench,
+  FolderLock,
   Megaphone,
   ArrowRight,
   Droplets,
   ShieldCheck,
   LayoutDashboard,
-  UserCheck2
+  UserCheck2,
+  Loader2
 } from "lucide-react";
+import API from "../../api/axios";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
-  const metrics = [
-    { 
-      label: "Total Registered Villagers", 
-      count: "1,420 Users", 
-      link: "/admin/users", 
+  const [metrics, setMetrics] = useState({
+    totalCitizens: 0,
+    totalWatermen: 0,
+    totalTaxRecords: 0,
+    pendingTaxCount: 0,
+    paidTaxCount: 0,
+    totalTaxCollection: 0.0,
+    totalPendingDues: 0.0,
+    totalComplaints: 0,
+    submittedComplaints: 0,
+    underReviewComplaints: 0,
+    resolvedComplaints: 0,
+    totalCertificateApplications: 0,
+    pendingCertificates: 0,
+    underVerificationCertificates: 0,
+    approvedCertificates: 0,
+    generatedCertificates: 0,
+    rejectedCertificates: 0,
+    totalPayments: 0,
+    totalRevenueCollected: 0.0,
+    recentComplaints: [],
+    recentCertificateApplications: [],
+    recentNotifications: []
+
+  });
+
+  const [loading, setLoading] = useState(true);
+
+
+  useEffect(() => {
+    const fetchAdminMetrics = async () => {
+      try {
+        const res = await API.get("/api/dashboard/admin");
+        setMetrics(res.data);
+      } catch (err) {
+        console.error("Failed to rehydrate administrative metrics topology:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAdminMetrics();
+  }, []);
+
+
+  
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Loading Live Administrative Architecture...</p>
+      </div>
+    );
+  }
+
+  
+ const statCards = [
+    {
+      label: "Total Registered Villagers",
+      count: `${((metrics.totalCitizens || 0) + (metrics.totalWatermen || 0)).toLocaleString('en-IN')} Users`,
+      subtext: `${metrics.totalWatermen || 0} Staff (Watermen)`,
+      link: "/admin/users",
       icon: Users,
       iconColor: "text-blue-600 bg-blue-50 border-blue-100"
     },
-    { 
-      label: "Pending Tax Revenue Collection", 
-      count: "₹42,500 Outstanding", 
-      link: "/admin/taxes", 
+    {
+      label: "Pending Tax Revenue",
+      count: `₹${(metrics.totalPendingDues || 0).toLocaleString('en-IN')}`,
+      subtext: `₹${(metrics.totalTaxCollection || 0).toLocaleString('en-IN')} Collected`,
+      link: "/admin/taxes",
       icon: BarChart3,
       iconColor: "text-amber-600 bg-amber-50 border-amber-100"
     },
-    { 
-      label: "Open Citizen Complaints", 
-      count: "14 Escalations", 
-      link: "/admin/complaints", 
+    {
+      label: "Open Citizen Complaints",
+      count: `${(metrics.submittedComplaints || 0) + (metrics.underReviewComplaints || 0)} Escalations`,
+      subtext: `${metrics.resolvedComplaints || 0} Resolved items`,
+      link: "/admin/complaints",
       icon: Wrench,
       iconColor: "text-rose-600 bg-rose-50 border-rose-100"
     },
-    { 
-      label: "Pending Documentation Audits", 
-      count: "8 Approvals Left", 
-      link: "/admin/certificates", 
+    {
+      label: "Pending Certificate Audits",
+      count: `${(metrics.pendingCertificates || 0) + (metrics.underVerificationCertificates || 0)} Applications`,
+      subtext: `${metrics.approvedCertificates || 0} Approved`,
+      link: "/admin/certificates",
       icon: FolderLock,
       iconColor: "text-emerald-600 bg-emerald-50 border-emerald-100"
     },
   ];
 
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-2 py-4">
-      
+
       {/* 1. Page Header Frame */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
         <div className="space-y-1">
@@ -73,29 +135,32 @@ const AdminDashboard = () => {
 
       {/* 2. Analytics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {metrics.map((m, i) => {
+        {statCards.map((m, i) => {
           const IconComponent = m.icon;
           return (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between group"
             >
               <div>
                 <div className={`w-11 h-11 rounded-xl border flex items-center justify-center mb-4 ${m.iconColor}`}>
                   <IconComponent className="w-5 h-5 stroke-[2.2]" />
                 </div>
-                
+
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
                   {m.label}
                 </p>
                 <p className="text-xl font-extrabold text-gray-900 tracking-tight mt-1">
                   {m.count}
                 </p>
+                <p className="text-[11px] text-gray-400 font-medium mt-0.5">
+                  {m.subtext}
+                </p>
               </div>
 
               <div className="mt-5 pt-4 border-t border-gray-100">
-                <button 
-                  onClick={() => navigate(m.link)} 
+                <button
+                  onClick={() => navigate(m.link)}
                   className="w-full flex items-center justify-between text-xs text-emerald-600 font-bold hover:text-emerald-700 transition-colors group/btn cursor-pointer"
                 >
                   <span>Manage Operations</span>
@@ -120,8 +185,8 @@ const AdminDashboard = () => {
 
         <div className="flex flex-wrap gap-3 pt-1">
           {/* Identity Verification Control Link */}
-          <button 
-            onClick={() => navigate("/admin/approval")} 
+          <button
+            onClick={() => navigate("/admin/approval")}
             className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-3 rounded-xl text-sm transition-all shadow-sm cursor-pointer"
           >
             <UserCheck2 className="w-4 h-4 text-emerald-400 stroke-[2.2]" />
@@ -129,8 +194,8 @@ const AdminDashboard = () => {
           </button>
 
           {/* Broadcast Alert */}
-          <button 
-            onClick={() => navigate("/admin/notifications")} 
+          <button
+            onClick={() => navigate("/admin/notifications")}
             className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-3 rounded-xl text-sm transition-all shadow-sm cursor-pointer"
           >
             <Megaphone className="w-4 h-4 stroke-[2.2]" />
@@ -138,8 +203,8 @@ const AdminDashboard = () => {
           </button>
 
           {/* Dispatch Water Alert */}
-          <button 
-            onClick={() => navigate("/admin/notifications")} 
+          <button
+            onClick={() => navigate("/admin/notifications")}
             className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-blue-700 border border-gray-200 font-bold px-5 py-3 rounded-xl text-sm transition-all shadow-sm cursor-pointer"
           >
             <Droplets className="w-4 h-4 text-blue-500 stroke-[2.2]" />
@@ -162,4 +227,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-

@@ -1,54 +1,94 @@
-
+import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { 
-  Wallet, 
-  FileText, 
-  FileCheck, 
-  Megaphone, 
-  ArrowUpRight, 
-  User, 
-  MapPin, 
-  Clock, 
+import {
+  Wallet,
+  FileText,
+  FileCheck,
+  Megaphone,
+  ArrowUpRight,
+  User,
+  MapPin,
+  Clock,
   ShieldCheck,
-  Building2
+  Building2,
+  Loader2
 } from "lucide-react";
+import API from "../../api/axios";
 
 const CitizenDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Primary Action Channels with professional color weights and Lucide icons
+
+  const [metrics, setMetrics] = useState({
+    pendingTaxCount: 0,
+    totalPendingAmount: 0.0,
+    paidTaxCount: 0,
+    totalPaymentsMade: 0,
+    totalAmountPaid: 0.0,
+    totalComplaints: 0,
+    resolvedComplaints: 0,
+    pendingComplaints: 0,
+    totalCertificationApplications: 0,
+    approvedCertificates: 0,
+    pendingCertificates: 0,
+    recentNotifications: [],
+    pendingTaxes: [],
+    recentPayments: [],
+    recentComplaints: [],
+    recentCertificates: []
+  });
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardMetrics = async () => {
+      try {
+        const res = await API.get("/api/dashboard/citizen");
+        setMetrics(res.data);
+      } catch (err) {
+        console.error("Failed to rehydrate citizen metrics topology:", error);
+
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardMetrics();
+
+
+  }, []);
+
   const actions = [
-    { 
-      title: "Property & Water Taxes", 
-      desc: "View pending assessments, compute current dues, and access historical payment receipts.", 
-      path: "/citizen/taxes", 
-      icon: Wallet, 
+    {
+      title: "Property & Water Taxes",
+      desc: "View pending assessments, compute current dues, and access historical payment receipts.",
+      path: "/citizen/taxes",
+      icon: Wallet,
       color: "text-blue-600 bg-blue-50 border-blue-100",
       accent: "hover:border-blue-300 hover:shadow-blue-50"
     },
-    { 
-      title: "Grievance Redressal", 
-      desc: "File formal complaints directly to your ward representative and track systemic resolution status.", 
-      path: "/citizen/complaints", 
-      icon: FileText, 
+    {
+      title: "Grievance Redressal",
+      desc: "File formal complaints directly to your ward representative and track systemic resolution status.",
+      path: "/citizen/complaints",
+      icon: FileText,
       color: "text-amber-600 bg-amber-50 border-amber-100",
       accent: "hover:border-amber-300 hover:shadow-amber-50"
     },
-    { 
-      title: "Certificate Requests", 
-      desc: "Submit digital applications for official institutional documentation including Income, Birth, and Caste records.", 
-      path: "/citizen/certificates", 
-      icon: FileCheck, 
+    {
+      title: "Certificate Requests",
+      desc: "Submit digital applications for official institutional documentation including Income, Birth, and Caste records.",
+      path: "/citizen/certificates",
+      icon: FileCheck,
       color: "text-purple-600 bg-purple-50 border-purple-100",
       accent: "hover:border-purple-300 hover:shadow-purple-50"
     },
-    { 
-      title: "Public Broadcasts", 
-      desc: "Monitor official village mandates, upcoming Gram Sabha assemblies, and notices from the Sarpanch.", 
-      path: "/citizen/notifications", 
-      icon: Megaphone, 
+    {
+      title: "Public Broadcasts",
+      desc: "Monitor official village mandates, upcoming Gram Sabha assemblies, and notices from the Sarpanch.",
+      path: "/citizen/notifications",
+      icon: Megaphone,
       color: "text-emerald-600 bg-emerald-50 border-emerald-100",
       accent: "hover:border-emerald-300 hover:shadow-emerald-50"
     },
@@ -61,14 +101,23 @@ const CitizenDashboard = () => {
     { label: "Processed Documents", value: "3", subtext: "Ready for download", color: "text-emerald-600" },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Loading Live Gram Panchayat Data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-2 py-4">
-      
-      {/* 1. Header Hero Panel */}
+
+      {/* Header Hero Panel */}
       <div className="relative overflow-hidden bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm">
         <div className="absolute right-0 top-0 translate-x-10 -translate-y-10 w-40 h-40 bg-emerald-50 rounded-full blur-2xl pointer-events-none" />
         <div className="absolute left-1/3 bottom-0 w-32 h-32 bg-blue-50 rounded-full blur-2xl pointer-events-none" />
-        
+
         <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1 text-xs font-semibold text-emerald-800">
@@ -104,20 +153,45 @@ const CitizenDashboard = () => {
         </div>
       </div>
 
-      {/* 2. Micro-Metrics Utility Ribbon */}
+      {/* Live Dynamic Metrics Ribbon */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {statistics.map((stat, idx) => (
-          <div key={idx} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between space-y-2">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">{stat.label}</span>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-2xl font-black ${stat.color} tracking-tight`}>{stat.value}</span>
-              <span className="text-xs font-medium text-gray-400">{stat.subtext}</span>
-            </div>
+
+        {/* Metric 1: Outstanding Tax Dues */}
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between space-y-2">
+          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Pending Tax Dues</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-black text-rose-600 tracking-tight">
+              ₹{metrics.totalPendingAmount.toLocaleString('en-IN')}
+            </span>
+            <span className="text-xs font-medium text-gray-400">({metrics.pendingTaxCount} pending bills)</span>
           </div>
-        ))}
+        </div>
+
+        {/* Metric 2: Open Complaints */}
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between space-y-2">
+          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Active Grievances</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-black text-amber-600 tracking-tight">
+              {metrics.pendingComplaints}
+            </span>
+            <span className="text-xs font-medium text-gray-400">Awaiting Admin Action</span>
+          </div>
+        </div>
+
+        {/* Metric 3: Certificates */}
+        <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between space-y-2">
+          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Processed Certificates</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-black text-emerald-600 tracking-tight">
+              {metrics.approvedCertificates}
+            </span>
+            <span className="text-xs font-medium text-gray-400">Out of {metrics.totalCertificationApplications} applied</span>
+          </div>
+        </div>
+
       </div>
 
-      {/* 3. Operational Grid System */}
+      {/* Operational Grid System */}
       <div className="space-y-4">
         <div>
           <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Administrative Actions</h2>
@@ -133,12 +207,10 @@ const CitizenDashboard = () => {
                 onClick={() => navigate(item.path)}
                 className={`group bg-white border border-gray-200 p-6 rounded-2xl cursor-pointer hover:shadow-md transition-all duration-200 flex items-start gap-5 relative ${item.accent}`}
               >
-                {/* Icon Wrapper Frame */}
                 <div className={`p-3.5 rounded-xl border shrink-0 transition-colors ${item.color}`}>
                   <IconComponent className="w-5 h-5 stroke-[2.2]" />
                 </div>
 
-                {/* Text Context Blocks */}
                 <div className="space-y-1.5 pr-6">
                   <h3 className="font-bold text-gray-900 text-lg tracking-tight group-hover:text-emerald-700 transition-colors">
                     {item.title}
@@ -148,7 +220,6 @@ const CitizenDashboard = () => {
                   </p>
                 </div>
 
-                {/* Subtle Inline Action Arrow */}
                 <div className="absolute right-5 top-6 text-gray-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-150">
                   <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
                 </div>
@@ -158,7 +229,7 @@ const CitizenDashboard = () => {
         </div>
       </div>
 
-      {/* 4. Portal Verification Footer */}
+      {/* Portal Verification Footer */}
       <div className="border-t border-gray-200 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-medium text-gray-400">
         <div className="flex items-center gap-1.5">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
@@ -172,4 +243,3 @@ const CitizenDashboard = () => {
 };
 
 export default CitizenDashboard;
-

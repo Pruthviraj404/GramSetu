@@ -21,7 +21,7 @@ public class DashboardController {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
     }
-
+    
     @GetMapping("/citizen")
     public ResponseEntity<CitizenDashboardResponse>getCitizenDashboard(){
         User user = getLoggedUser();

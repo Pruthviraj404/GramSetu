@@ -1,4 +1,5 @@
 package com.mpz.gramsetu.service;
+
 import com.mpz.gramsetu.dto.PaymentRequest;
 import com.mpz.gramsetu.dto.PaymentResponse;
 import com.mpz.gramsetu.entity.Payment;
@@ -10,6 +11,15 @@ import com.mpz.gramsetu.repository.PaymentRepository;
 import com.mpz.gramsetu.repository.TaxRepository;
 import com.mpz.gramsetu.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import com.razorpay.RazorpayClient;
+import com.razorpay.Utils;
+
+import jakarta.transaction.Transactional;
+
+import com.razorpay.Order;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,42 +31,100 @@ import java.util.stream.Collectors;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final RazorpayClient razorpayClient;
     private final TaxRepository taxRepository;
     private final UserRepository userRepository;
 
-    public PaymentResponse payTax(Long userId, PaymentRequest request){
-        User user= userRepository.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User not found"));
+    @Value("${razorpay.key.secret}")
+    private String keySecret;
 
-        Tax tax= taxRepository.findById(request.taxId()).orElseThrow(()-> new ResourceNotFoundException("Tax not found"));
+    public String createRazorpayOrder(double amountInRupees) throws Exception {
+        int amountInPaise = (int) (amountInRupees * 100);
 
-        if(!tax.getUser().getId().equals(userId)){
-            throw new IllegalArgumentException("This tax does not belongs to you.");
+        JSONObject orderRequest = new JSONObject();
+        orderRequest.put("amount", amountInPaise);
+        orderRequest.put("currency", "INR");
+        orderRequest.put("receipt", "txn_" + System.currentTimeMillis());
 
+        Order order = razorpayClient.orders.create(orderRequest);
+        return order.toString();
+    }
+
+    @Transactional
+    public PaymentResponse verifyAndProcessPayment(Long userId, PaymentRequest request) {
+        try {
+            JSONObject options = new JSONObject();
+            options.put("razorpay_order_id", request.razorpayOrderId());
+            options.put("razorpay_payment_id", request.transcationId());
+            options.put("razorpay_signature", request.razorpaySignature());
+
+            boolean isValid = Utils.verifyPaymentSignature(options, keySecret);
+            if (!isValid) {
+                throw new IllegalArgumentException("Payment security verificationfailed. Signature mismatch.");
+
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Signature validation error:" + e.getMessage());
         }
 
-        Payment payment= Payment.builder()
-        .user(user).tax(tax).amount(request.amount()).transactionId(request.transcationId()).build();
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Tax tax = taxRepository.findById(request.taxId())
+                .orElseThrow(() -> new ResourceNotFoundException("Tax record not found"));
+
+        if (!tax.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("This tax does not belong to you");
+        }
+
+        Payment payment = Payment.builder()
+                .user(user)
+                .tax(tax)
+                .amount(request.amount())
+                .transactionId(request.transcationId())
+
+                .build();
 
         Payment savedPayment = paymentRepository.save(payment);
 
         tax.setStatus(TaxStatus.PAID);
         taxRepository.save(tax);
-
         return toResponse(savedPayment);
+
     }
 
-    public List<PaymentResponse>getMyPayments(Long userId){
+    // public PaymentResponse payTax(Long userId, PaymentRequest request) {
+    //     User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    //     Tax tax = taxRepository.findById(request.taxId())
+    //             .orElseThrow(() -> new ResourceNotFoundException("Tax not found"));
+
+    //     if (!tax.getUser().getId().equals(userId)) {
+    //         throw new IllegalArgumentException("This tax does not belongs to you.");
+
+    //     }
+
+    //     Payment payment = Payment.builder()
+    //             .user(user).tax(tax).amount(request.amount()).transactionId(request.transcationId()).build();
+
+    //     Payment savedPayment = paymentRepository.save(payment);
+
+    //     tax.setStatus(TaxStatus.PAID);
+    //     taxRepository.save(tax);
+
+    //     return toResponse(savedPayment);
+    // }
+
+    public List<PaymentResponse> getMyPayments(Long userId) {
         return paymentRepository.findByUserId(userId).stream().map(payment -> toResponse(payment))
                 .collect(Collectors.toList());
     }
 
-    public List<PaymentResponse>getAllPayments(){
-        return paymentRepository.findAll().stream().map(payment->toResponse(payment)).collect(Collectors.toList());
-        
-    }
-    
+    public List<PaymentResponse> getAllPayments() {
+        return paymentRepository.findAll().stream().map(payment -> toResponse(payment)).collect(Collectors.toList());
 
-     private PaymentResponse toResponse(Payment payment) {
+    }
+
+    private PaymentResponse toResponse(Payment payment) {
         return new PaymentResponse(
                 payment.getId(),
                 payment.getUser().getId(),
@@ -65,7 +133,6 @@ public class PaymentService {
                 payment.getTax().getTaxType().name(),
                 payment.getAmount(),
                 payment.getTransactionId(),
-                payment.getPaymentDate()
-        );
+                payment.getPaymentDate());
     }
 }

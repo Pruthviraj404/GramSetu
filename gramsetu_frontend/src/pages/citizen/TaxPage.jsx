@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from "react";
 import API from "../../api/axios";
-import { 
-  Receipt, 
-  CreditCard, 
-  CheckCircle2, 
-  AlertTriangle, 
-  HelpCircle, 
-  Calendar, 
-  FileText, 
+import {
+  Receipt,
+  CreditCard,
+  CheckCircle2,
+  AlertTriangle,
+  HelpCircle,
+  Calendar,
+  FileText,
   TrendingUp,
   ShieldCheck
 } from "lucide-react";
@@ -24,6 +24,69 @@ const TaxPage = () => {
       .finally(() => setLoading(false));
   }, []);
 
+
+  const handleRazorpayPayment = async (tax) => {
+    try {
+      const orderResponse = await API.post("/api/payments/create-order", {
+        amount: tax.amount,
+      });
+
+      const { id: orderId, amount, currency } = orderResponse.data;
+
+
+      const options = {
+        key: "rzp_test_TAGHgMwt5e7CMl",
+        amount: amount,
+        currency: currency,
+        name: "Gramsetu",
+        description: `${formatTaxType(tax.taxType)} Payment`,
+        order_id: orderId,
+        handler: async function (response) {
+          try {
+            const verificationPayload = {
+              taxId: tax.id,
+              amount: tax.amount,
+              transcationId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
+            };
+
+            const verifyRes = await API.post("/api/payments/verify-payment", verificationPayload);
+
+            if (verifyRes.status == 201 || verifyRes.data.status === "SUCCESS") {
+              alert("🎉 Payment Successful! Your invoice has been settled.")
+
+
+              setTaxes((prevTaxes) =>
+                prevTaxes.map((t) => (t.id === tax.id ? { ...t, status: "PAID" } : t))
+              );
+            }
+          } catch (err) {
+            console.error("Payment verification failure context:", err);
+            alert("Signature reconciliation rejected by server.");
+
+          }
+        }
+        , prefill: {
+          name: tax.userName || "Villager",
+          email: "citizen@gramsetu.in",
+
+        },
+        theme: {
+          color: "#059669",
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+
+    } catch (error) {
+      console.error("Failed to kick off runtime payment workflow:", error);
+      alert("Could not initialize transaction with the banking gateway.");
+
+    }
+
+  };
   // Helper mapping to transform raw system names into localized text strings
   const formatTaxType = (type) => {
     const types = {
@@ -68,7 +131,7 @@ const TaxPage = () => {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto px-2 py-4">
-      
+
       {/* 1. Page Header Frame */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
         <div className="space-y-1">
@@ -77,8 +140,7 @@ const TaxPage = () => {
             Review, track, and clear your pending structural development and civic utility liabilities.
           </p>
         </div>
-        
-        {/* Dynamic aggregation tracking card overview */}
+
         <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 flex items-center gap-3 shrink-0">
           <TrendingUp className="w-5 h-5 text-emerald-600" />
           <div className="text-xs">
@@ -113,8 +175,8 @@ const TaxPage = () => {
             const StatusIcon = statusMeta.icon;
 
             return (
-              <div 
-                key={tax.id} 
+              <div
+                key={tax.id}
                 className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
               >
                 {/* Left Metadata Block Context */}
@@ -137,7 +199,6 @@ const TaxPage = () => {
                     </p>
                   </div>
 
-                  {/* Operational Dates Array Footprint */}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400 font-medium pt-1 border-t border-gray-50">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
@@ -158,9 +219,11 @@ const TaxPage = () => {
                     <p className="text-3xl font-black text-gray-900 tracking-tight">₹{tax.amount?.toFixed(2)}</p>
                   </div>
 
-                  {/* Trigger active actions only if status points to outstanding parameters */}
                   {tax.status !== "PAID" ? (
-                    <button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition cursor-pointer">
+                    <button
+                      onClick={() => handleRazorpayPayment(tax)}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition cursor-pointer"
+                    >
                       <CreditCard className="w-4 h-4" />
                       <span>Pay Bill</span>
                     </button>
@@ -192,4 +255,3 @@ const TaxPage = () => {
 };
 
 export default TaxPage;
-

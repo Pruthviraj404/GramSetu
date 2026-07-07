@@ -15,7 +15,10 @@ public record PaymentRequest (
     Double amount,
 
     @NotBlank(message = "Transaction ID is required")
-    String transcationId
+    String transcationId,
+
+    @NotNull String razorpayOrderId,
+    @NotNull String razorpaySignature
 
     
 ){}

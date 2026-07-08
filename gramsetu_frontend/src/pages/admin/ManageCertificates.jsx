@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import API from "../../api/axios";
-import { 
-  FileText, 
-  CheckCircle2, 
-  Clock, 
-  AlertCircle, 
-  XCircle, 
-  ShieldCheck, 
-  FileCheck, 
+import {
+  FileText,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  XCircle,
+  ShieldCheck,
+  FileCheck,
   ExternalLink,
   User,
   Activity,
@@ -37,6 +37,12 @@ const ManageCertificates = () => {
     }
   };
 
+
+  const promptRemarks = (actionTitle) => {
+    const msg = prompt(`Enter audit notes/remarks for [${actionTitle}]:`);
+    return msg !== null ? msg : "Processed via administrator dashboard node.";
+  };
+
   useEffect(() => {
     loadRequests();
   }, []);
@@ -61,6 +67,22 @@ const ManageCertificates = () => {
     }
   };
 
+  const generateCertificatePdf = async (id) => {
+    try {
+      await API.post(`/api/certificates/${id}/generate`);
+      alert("PDF compiled successfully using native iText framework!");
+      loadRequests();
+    } catch (err) {
+      console.error(err);
+      alert("PDF compilation engine failure. Review backend class logs.");
+
+    }
+  };
+
+
+
+
+
   const formatDate = (dateString) => {
     if (!dateString) return "—";
     return new Date(dateString).toLocaleDateString("en-IN", {
@@ -81,10 +103,8 @@ const ManageCertificates = () => {
       default: return <AlertCircle className="w-3.5 h-3.5" />;
     }
   };
-
   return (
     <div className="space-y-6 p-1">
-      
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-gray-100 pb-5 gap-4">
         <div>
@@ -130,7 +150,7 @@ const ManageCertificates = () => {
               <tbody className="divide-y divide-gray-100 text-gray-700">
                 {applications.map((app) => (
                   <tr key={app.id} className="hover:bg-gray-50/40 transition-colors align-top group">
-                    
+
                     {/* ID & Token */}
                     <td className="p-4 pl-6 space-y-1">
                       <div className="font-mono text-xs font-semibold text-gray-400">#{app.id}</div>
@@ -176,19 +196,19 @@ const ManageCertificates = () => {
                     <td className="p-4 max-w-xs whitespace-normal space-y-1.5">
                       {app.verificationRemarks && (
                         <div className="text-xs text-gray-600 leading-relaxed">
-                          <span className="font-bold text-gray-400 uppercase text-[10px] tracking-tight block">[Verify]</span> 
+                          <span className="font-bold text-gray-400 uppercase text-[10px] tracking-tight block">[Verify]</span>
                           {app.verificationRemarks}
                         </div>
                       )}
                       {app.approvalRemarks && (
                         <div className="text-xs text-gray-600 leading-relaxed">
-                          <span className="font-bold text-gray-400 uppercase text-[10px] tracking-tight block">[Approve]</span> 
+                          <span className="font-bold text-gray-400 uppercase text-[10px] tracking-tight block">[Approve]</span>
                           {app.approvalRemarks}
                         </div>
                       )}
                       {app.rejectionRemarks && (
                         <div className="text-xs text-rose-600 font-medium leading-relaxed">
-                          <span className="font-bold text-rose-400 uppercase text-[10px] tracking-tight block">[Reject]</span> 
+                          <span className="font-bold text-rose-400 uppercase text-[10px] tracking-tight block">[Reject]</span>
                           {app.rejectionRemarks}
                         </div>
                       )}
@@ -201,9 +221,9 @@ const ManageCertificates = () => {
                     <td className="p-4 space-y-1.5">
                       {app.documentUrl && (
                         <div>
-                          <a 
-                            href={app.documentUrl} 
-                            target="_blank" 
+                          <a
+                            href={app.documentUrl}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-1 group/link"
                           >
@@ -215,9 +235,9 @@ const ManageCertificates = () => {
                       )}
                       {app.generatedCertificateUrl && (
                         <div>
-                          <a 
+                          <a
                             href={`${API.defaults.baseURL || ""}/${app.generatedCertificateUrl}`}
-                            target="_blank" 
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs text-emerald-600 hover:text-emerald-800 font-extrabold inline-flex items-center gap-1 group/link"
                           >
@@ -229,28 +249,61 @@ const ManageCertificates = () => {
                       )}
                     </td>
 
-                    {/* Actions */}
+                    {/* Actions Pipeline Routing Grid */}
                     <td className="p-4 pr-6 text-right">
                       <div className="inline-flex items-center gap-1.5">
+
+                        {/* 1. Pending Stage Action handles Verification */}
                         {app.status === "PENDING" && (
+                          <>
+                            <button
+                              onClick={() => verifyApplications(app.id)}
+                              className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm"
+                            >
+                              Verify
+                            </button>
+                            <button
+                              onClick={() => rejectApplications(app.id)}
+                              className="bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+
+                        {/* 2. Active Verification Stage allows authorization signatures */}
+                        {app.status === "UNDER_VERIFICATION" && (
+                          <>
+                            <button
+                              onClick={() => approveApplications(app.id)}
+                              className="bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => rejectApplications(app.id)}
+                              className="bg-white hover:bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+
+                        {/* 3. NEW STEP: Approved entities run through the iText compilation phase */}
+                        {app.status === "APPROVED" && (
                           <button
-                            onClick={() => verifyApplications(app.id)}
-                            className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-200 text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm"
+                            onClick={() => generateCertificatePdf(app.id)}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold px-3 py-1.5 rounded-xl transition shadow-sm inline-flex items-center gap-1"
                           >
-                            Verify
+                            <span>Generate PDF</span>
                           </button>
                         )}
-                        {(app.status === "PENDING" || app.status === "UNDER_VERIFICATION") && (
-                          <button
-                            onClick={() => approveApplications(app.id)}
-                            className="bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm"
-                          >
-                            Approve
-                          </button>
+
+                        {/* Final terminal state display */}
+                        {(app.status === "GENERATED" || app.status === "REJECTED") && (
+                          <span className="text-xs text-gray-400 font-medium italic pr-2">Archived</span>
                         )}
-                        {app.status !== "PENDING" && app.status !== "UNDER_VERIFICATION" && (
-                          <span className="text-xs text-gray-400 font-medium italic pr-2">Processed</span>
-                        )}
+
                       </div>
                     </td>
 

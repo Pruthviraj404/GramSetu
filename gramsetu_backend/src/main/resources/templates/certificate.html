@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Official Government Certificate</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 0;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif; /* Formal government style font */
+            margin: 0;
+            padding: 35px;
+            background-color: #fcfbf7; /* Off-white tint to mimic original security paper */
+            color: #111827;
+        }
+        .certificate-container {
+            border: 3px solid #1e293b;
+            outline: 1px solid #1e293b;
+            outline-offset: -8px;
+            padding: 45px;
+            background-color: #ffffff;
+            min-height: 850px;
+            position: relative;
+            box-sizing: border-box;
+            /* Subtle security background mesh styling */
+            background-image: radial-gradient(#e2e8f0 0.75px, transparent 0.75px);
+            background-size: 16px 16px;
+            background-opacity: 0.15;
+        }
+        
+        /* Watermark behind the content */
+        .watermark {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 90px;
+            color: rgba(226, 232, 240, 0.4);
+            font-weight: bold;
+            letter-spacing: 5px;
+            text-align: center;
+            z-index: 1;
+            pointer-events: none;
+            border: 10px double rgba(226, 232, 240, 0.4);
+            padding: 10px 30px;
+            border-radius: 10px;
+        }
+
+        .content-layer {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Top Government Bar Layout */
+        .top-meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+            color: #475569;
+            margin-bottom: 15px;
+        }
+        
+        .gov-header-block {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .gov-header-block .state-title {
+            font-size: 15px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #0f172a;
+        }
+        .gov-header-block .dept-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 4px;
+            color: #1e3a8a; /* Deep Department Blue */
+        }
+        .gov-header-block .sub-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        .legal-act-declaration {
+            text-align: center;
+            font-size: 11px;
+            font-style: italic;
+            color: #334155;
+            margin-bottom: 30px;
+            line-height: 1.4;
+            border-top: 1px dashed #cbd5e1;
+            border-bottom: 1px dashed #cbd5e1;
+            padding: 6px 0;
+        }
+
+        .main-cert-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #9a3412; /* Deep Brick Red/Dark Amber */
+            margin-bottom: 40px;
+            letter-spacing: 1.5px;
+            text-decoration: underline;
+        }
+
+        /* Clean Legal Data Field Rows instead of generic table grid */
+        .legal-row {
+            width: 100%;
+            margin-bottom: 18px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .legal-label {
+            display: inline-block;
+            width: 200px;
+            color: #334155;
+            font-weight: bold;
+        }
+        .legal-value {
+            display: inline-block;
+            border-bottom: 1px dotted #1e293b;
+            width: 480px;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .declaration-text {
+            margin-top: 45px;
+            font-size: 14px;
+            line-height: 1.8;
+            text-align: justify;
+            text-indent: 40px;
+            color: #1e293b;
+        }
+
+        /* Footer & Signatures Block */
+        .footer-container {
+            margin-top: 90px;
+            width: 100%;
+        }
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .footer-table td {
+            vertical-align: bottom;
+            border: none;
+        }
+        .crypto-verification {
+            font-family: monospace;
+            font-size: 10px;
+            color: #64748b;
+            line-height: 1.4;
+            border-left: 2px solid #cbd5e1;
+            padding-left: 10px;
+        }
+        .authority-signature-space {
+            text-align: right;
+            font-size: 13px;
+        }
+        .authority-signature-space .officer-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: #0f172a;
+            margin-top: 40px;
+        }
+        .authority-signature-space .designation {
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+<body>
+
+<div class="certificate-container">
+    
+    <div class="watermark" th:text="${app.certificateType.name().replace('_', ' ')}">BIRTH</div>
+
+    <div class="content-layer">
+        
+        <table class="top-meta-table">
+            <tr>
+                <td><strong>Acknowledgement ID:</strong> GS-PANCH/2026/8122</td>
+                <td style="text-align: right;"><strong>Form No:</strong> 5 (Sec. 12/17)</td>
+            </tr>
+        </table>
+
+        <div class="gov-header-block">
+            <div class="state-title">GOVERNMENT OF MAHARASHTRA</div>
+            <div class="dept-title">GRAM PANCHAYAT OFFICE DIVISION</div>
+            <div class="sub-title">DISTRICT KOLHAPUR, MAHARASHTRA STATE</div>
+        </div>
+
+        <div class="legal-act-declaration">
+            Issued under the framework of local governance records managed by the GramSetu Digital Administration Platform<br>
+            conforming to standard statutory validation guidelines of public registration registries.
+        </div>
+
+        <div class="main-cert-title" th:text="${app.certificateType.name().replace('_', ' ') + ' CERTIFICATE'}">
+            BIRTH CERTIFICATE
+        </div>
+
+        <div class="legal-row">
+            <span class="legal-label">Certificate Number:</span>
+            <span class="legal-value" style="font-family: monospace; font-size: 14px; letter-spacing: 0.5px;" th:text="${app.certificateNumber}">BIR-2026-0002</span>
+        </div>
+        
+        <div class="legal-row">
+            <span class="legal-label">Full Name of Applicant:</span>
+            <span class="legal-value" style="text-transform: uppercase; font-size: 16px;" th:text="${app.user.name}">PRUTHVIRAJ PATIL</span>
+        </div>
+
+        <div class="legal-row">
+            <span class="legal-label">Registered Mobile Number:</span>
+            <span class="legal-value" th:text="${app.user.mobileNumber}">7709368067</span>
+        </div>
+
+        <div class="legal-row">
+            <span class="legal-label">Permanent Address:</span>
+            <span class="legal-value" th:text="${app.user.address + ', ' + app.user.area}">Mahalaxmi Colony, Ward 2, Ward 1</span>
+        </div>
+
+        <div class="legal-row">
+            <span class="legal-label">Date of Official Issue:</span>
+            <span class="legal-value" th:text="${formattedDate}">08-07-2026</span>
+        </div>
+
+        <div class="declaration-text">
+            This is to officially certify and execute that the administrative records of the Gram Panchayat have been checked and verified under standard evaluation protocols. The dynamic identity assets and local residential indicators provided by the citizen completely correlate with the census indices registered within the safe custody archives of this public registry jurisdiction.
+        </div>
+
+        <div class="footer-container">
+            <table class="footer-table">
+                <tr>
+                    <td class="crypto-verification">
+                        [DIGITALLY VERIFIED SECURE LOG]<br>
+                        PLATFORM NODE ID: G-SETU-KLHP-4822<br>
+                        HASH SHA-256 SYSTEM METRIC ID VALIDATED<br>
+                        INTEGRITY PROTOCOL: COMPLIANT
+                    </td>
+                    <td class="authority-signature-space">
+                        <div>Verified & Issued By:</div>
+                        <div class="officer-name" th:text="${app.approvedBy != null ? app.approvedBy.name : 'Test Admin'}">Test Admin</div>
+                        <div class="designation">Gram Sevak / Authorized Signatory</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Gram Panchayat Office Node</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

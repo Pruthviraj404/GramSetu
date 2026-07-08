@@ -128,7 +128,7 @@ public class CertificateService {
 
         }
 
-        app.setStatus(CertificateStatus.APPROVED);
+        app.setStatus(CertificateStatus.REJECTED);
         app.setRejectedAt(LocalDateTime.now());
         app.setRejectionRemarks(request.remarks());
 
@@ -144,7 +144,7 @@ public class CertificateService {
              throw new InvalidStatusTransitionException(
                     "Only APPROVED applications can be GENERATED. Current status: " + app.getStatus());
         }
-
+ 
         app.setGeneratedAt(LocalDateTime.now());
 
 

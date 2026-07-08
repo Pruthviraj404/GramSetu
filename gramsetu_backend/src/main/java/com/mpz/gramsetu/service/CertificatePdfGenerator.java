@@ -1,14 +1,11 @@
 package com.mpz.gramsetu.service;
 
-import com.itextpdf.kernel.colors.ColorConstants;
-import com.itextpdf.kernel.geom.PageSize;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.Document;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.properties.TextAlignment;
+import com.itextpdf.html2pdf.HtmlConverter;
 import com.mpz.gramsetu.entity.CertificateApplication;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayOutputStream;
 import java.time.format.DateTimeFormatter;
@@ -16,91 +13,32 @@ import java.time.format.DateTimeFormatter;
 @Component
 public class CertificatePdfGenerator {
 
+    @Autowired
+    private TemplateEngine templateEngine; // Thymeleaf Template Loader
+
     public byte[] generate(CertificateApplication app) {
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            
+            // 1. Thymeleaf Variables Bind Karein
+            Context context = new Context();
+            context.setVariable("app", app);
+            
+            // Date Format karein (08-07-2026)
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            String formattedDate = app.getApprovedAt() != null ? app.getApprovedAt().format(dateFormatter) : "08-07-2026";
+            context.setVariable("formattedDate", formattedDate);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
+            // 2. HTML template ko parse karke string banayein
+            // Yeh automatic 'src/main/resources/templates/certificate.html' ko uthayega
+            String htmlContent = templateEngine.process("certificate", context);
 
-        try (
-                PdfWriter writer = new PdfWriter(out);
-                PdfDocument pdfDoc = new PdfDocument(writer);
-                Document document = new Document(pdfDoc, PageSize.A4)
-        ) {
+            // 3. iText html2pdf converter se full CSS ke sath PDF generate karein
+            HtmlConverter.convertToPdf(htmlContent, outputStream);
 
-            // Title
-            document.add(
-                    new Paragraph("GRAM PANCHAYAT")
-                            .setTextAlignment(TextAlignment.CENTER)
-                            .setFontSize(20)
-                            .setBold()
-            );
-
-            // Certificate Type
-            document.add(
-                    new Paragraph(app.getCertificateType().name() + " CERTIFICATE")
-                            .setTextAlignment(TextAlignment.CENTER)
-                            .setFontSize(16)
-                            .setFontColor(ColorConstants.DARK_GRAY)
-                            .setBold()
-            );
-
-            document.add(new Paragraph("\n"));
-
-            // Certificate Details
-            document.add(
-                    new Paragraph("Certificate No: " + app.getCertificateNumber())
-            );
-
-            document.add(
-                    new Paragraph("Issued To: " + app.getUser().getName())
-            );
-
-            document.add(
-                    new Paragraph("Mobile: " + app.getUser().getMobileNumber())
-            );
-
-            document.add(
-                    new Paragraph(
-                            "Address: "
-                                    + app.getUser().getAddress()
-                                    + ", "
-                                    + app.getUser().getArea()
-                    )
-            );
-
-            if (app.getGeneratedAt() != null) {
-                document.add(
-                        new Paragraph(
-                                "Issue Date: "
-                                        + app.getGeneratedAt()
-                                                .format(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
-                        )
-                );
-            }
-
-            document.add(new Paragraph("\n\n"));
-
-            document.add(
-                    new Paragraph(
-                            "This is to certify that the above details are verified and approved "
-                                    + "by the Gram Panchayat office as per records available."
-                    )
-            );
-
-            document.add(new Paragraph("\n\n\n"));
-
-            document.add(
-                    new Paragraph("Authorized Signatory")
-                            .setTextAlignment(TextAlignment.RIGHT)
-            );
-
-            return out.toByteArray();
-
+            return outputStream.toByteArray();
+            
         } catch (Exception e) {
-
-            throw new RuntimeException(
-                    "Failed to generate certificate PDF: " + e.getMessage(),
-                    e
-            );
+            throw new RuntimeException("HTML/CSS se professional PDF render karne me dikkat aayi: ", e);
         }
     }
 }

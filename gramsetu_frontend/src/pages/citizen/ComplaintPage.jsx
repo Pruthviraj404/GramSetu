@@ -10,12 +10,15 @@ import {
   HelpCircle, 
   History,
   CornerDownRight,
-  ShieldAlert
+  ShieldAlert,
+  EyeOff,
+  Image
 } from "lucide-react";
 
 const ComplaintPage = () => {
   const [complaints, setComplaints] = useState([]);
-  const [title, setTitle] = useState("");
+ const [imageUrl, setImageUrl] = useState("");
+ const [anonymous, setAnonymous] = useState(false);
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -33,50 +36,39 @@ const ComplaintPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim()) return;
+    if (!description.trim()) return;
     setLoading(true);
     try {
-      await API.post("/api/complaints", { title, description });
-      setTitle("");
+      await API.post("/api/complaints", 
+        {description, imageUrl:imageUrl.trim() || null, anonymous});
+      
       setDescription("");
+      setImageUrl("");
+      setAnonymous(false);
       fetchComplaints();
     } catch (err) {
       console.error("Error submitting grievance:", err); // Fixed the 'error is not defined' catch syntax bug
     } finally {
-      loading && setLoading(false);
       setLoading(false);
+
     }
   };
 
-  // Status mapping utility for professional rendering weights
   const getStatusMeta = (status) => {
     switch (status?.toUpperCase()) {
       case "RESOLVED":
-        return {
-          bg: "bg-emerald-50 border-emerald-200 text-emerald-700",
-          icon: CheckCircle2,
-          label: "Resolved"
-        };
+        return { bg: "bg-emerald-50 border-emerald-200 text-emerald-700", icon: CheckCircle2, label: "Resolved" };
       case "IN_PROGRESS":
       case "PROCESSING":
-        return {
-          bg: "bg-blue-50 border-blue-200 text-blue-700",
-          icon: Clock,
-          label: "In Progress"
-        };
+        return { bg: "bg-blue-50 border-blue-200 text-blue-700", icon: Clock, label: "In Progress" };
       case "PENDING":
       default:
-        return {
-          bg: "bg-amber-50 border-amber-200 text-amber-700",
-          icon: AlertCircle,
-          label: "Pending Review"
-        };
+        return { bg: "bg-amber-50 border-amber-200 text-amber-700", icon: AlertCircle, label: "Pending Review" };
     }
   };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto px-2 py-4">
-      
       {/* Page Header Introduction Row */}
       <div className="space-y-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
         <h2 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">Grievance Redressal Desk</h2>
@@ -86,7 +78,6 @@ const ComplaintPage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        
         {/* 1. Grievance Form Panel */}
         <div className="lg:col-span-1 lg:sticky lg:top-24">
           <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm space-y-4">
@@ -101,20 +92,7 @@ const ComplaintPage = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-              <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
-                  Subject Headline
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Broken baseline water valve near Temple street"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium text-gray-800 placeholder:text-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50 transition-all"
-                  required
-                />
-              </div>
-
+              {/* Detailed Explanation */}
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
                   Detailed Explanation
@@ -129,9 +107,43 @@ const ComplaintPage = () => {
                 />
               </div>
 
+              {/* Image URL Input Field */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block flex items-center gap-1">
+                  <Image className="w-3.5 h-3.5" /> Reference Image Link (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="https://example.com/photo.jpg"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none font-medium text-gray-800 placeholder:text-gray-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-50 transition-all"
+                />
+              </div>
+
+              {/* Anonymous Toggle Option Switch */}
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 transition duration-150">
+                <div className="flex items-center gap-2">
+                  <EyeOff className="w-4 h-4 text-gray-400" />
+                  <div>
+                    <label htmlFor="anonymous-toggle" className="text-xs font-bold text-gray-700 block cursor-pointer select-none">
+                      File Anonymously
+                    </label>
+                    <span className="text-[10px] font-medium text-gray-400 block leading-tight">Hide your profile identifier</span>
+                  </div>
+                </div>
+                <input
+                  id="anonymous-toggle"
+                  type="checkbox"
+                  checked={anonymous}
+                  onChange={(e) => setAnonymous(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500 cursor-pointer"
+                />
+              </div>
+
               <button
                 type="submit"
-                disabled={loading || !title.trim() || !description.trim()}
+                disabled={loading || !description.trim()}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl text-sm transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 {loading ? (
@@ -181,15 +193,16 @@ const ComplaintPage = () => {
                     key={c.id} 
                     className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-all duration-200 space-y-4 relative overflow-hidden group"
                   >
-                    {/* Status Top Strip Context bar */}
                     <div className="flex justify-between items-start gap-4">
                       <div className="space-y-1">
-                        <h4 className="font-extrabold text-gray-900 text-lg tracking-tight group-hover:text-emerald-700 transition-colors">
-                          {c.title}
-                        </h4>
-                        <div className="flex items-center gap-1 text-[11px] font-mono text-gray-400">
+                        <div className="flex items-center gap-1.5 text-[11px] font-mono text-gray-400">
                           <CornerDownRight className="w-3 h-3 text-gray-300" />
                           <span>Incident Ticket: #{c.id}</span>
+                          {c.anonymous && (
+                            <span className="ml-1 px-1.5 py-0.5 bg-gray-100 border text-[9px] font-bold rounded text-gray-500 uppercase tracking-wide">
+                              Anonymous
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -199,12 +212,22 @@ const ComplaintPage = () => {
                       </span>
                     </div>
 
-                    {/* Explanatory Data Area */}
                     <p className="text-gray-600 text-sm font-medium leading-relaxed bg-gray-50 rounded-xl p-4 border border-gray-100">
                       {c.description}
                     </p>
 
-                    {/* Operational Node footer metadata context if needed */}
+                    {/* Render Image Attachments if populated */}
+                    {c.imageUrl && (
+                      <div className="mt-2 max-w-sm rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+                        <img 
+                          src={c.imageUrl} 
+                          alt="Grievance attachment record reference link" 
+                          className="w-full max-h-48 object-cover group-hover:scale-[1.01] transition duration-200"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-wider pt-1">
                       <div className="flex items-center gap-1">
                         <ShieldAlert className="w-3.5 h-3.5 text-gray-300" />
@@ -217,7 +240,6 @@ const ComplaintPage = () => {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );

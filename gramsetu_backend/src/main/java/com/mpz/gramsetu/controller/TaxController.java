@@ -21,27 +21,20 @@ public class TaxController {
 
     private final TaxService taxService;
 
-    // Helper: get logged in user
     private User getLoggedInUser() {
         return (User) SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getPrincipal();
     }
 
-    // Admin: create tax
-    @PostMapping
-    public ResponseEntity<TaxResponse> createTax(@Valid @RequestBody TaxRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(taxService.createTax(request));
-    }
 
-    // Admin: get all taxes
+   
     @GetMapping
     public ResponseEntity<List<TaxResponse>> getAllTaxes() {
         return ResponseEntity.ok(taxService.getAllTaxes());
     }
 
-    // Admin: update tax status
+    
     @PutMapping("/{id}")
     public ResponseEntity<TaxResponse> updateTax(
             @PathVariable Long id,
@@ -49,14 +42,12 @@ public class TaxController {
         return ResponseEntity.ok(taxService.updateTax(id, status));
     }
 
-    // Citizen: view my taxes  ← removed @RequestParam status here
     @GetMapping("/my")
     public ResponseEntity<List<TaxResponse>> getMyTaxes() {
         User user = getLoggedInUser();
         return ResponseEntity.ok(taxService.getMyTaxes(user.getId()));
     }
 
-    // Citizen: view my taxes by status
     @GetMapping("/my/filter")
     public ResponseEntity<List<TaxResponse>> getMyTaxesByStatus(
             @RequestParam TaxStatus status) {

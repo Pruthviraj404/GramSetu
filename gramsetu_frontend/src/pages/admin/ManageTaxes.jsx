@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import API from "../../api/axios";
 import { 
   Receipt, 
-  Plus, 
   CheckCircle2, 
   AlertCircle, 
   User, 
@@ -32,23 +31,18 @@ const ManageTaxes = () => {
   };
 
   return (
-    <div className="space-y-6 p-1">
+    <div className="space-y-6 p-1 max-w-7xl mx-auto">
       {/* Structural Header Context Block */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-5">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 tracking-tight sm:text-3xl">
-            Gram Panchayat Revenue Auditing
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            Track infrastructure assessments, monitor structural tax metrics, and manage community billing portfolios.
-          </p>
-        </div>
-        <button className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition shadow-sm shadow-emerald-600/10 shrink-0">
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>Generate New Invoice Run</span>
-        </button>
+      <div className="border-b border-gray-100 pb-5">
+        <h2 className="text-2xl font-bold text-gray-900 tracking-tight sm:text-3xl">
+          Gram Panchayat Revenue Auditing
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Track infrastructure assessments, monitor structural tax metrics, and review automated community billing distributions.
+        </p>
       </div>
 
+      {/* LEDGER DATA VIEW GRID */}
       {loading ? (
         <div className="flex items-center justify-center py-20 text-gray-400 text-sm font-medium animate-pulse">
           <Activity className="animate-spin h-5 w-5 mr-3 text-gray-500" />
@@ -58,7 +52,7 @@ const ManageTaxes = () => {
         <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl text-gray-400 text-sm shadow-sm flex flex-col items-center justify-center">
           <Receipt className="w-10 h-10 text-gray-300 mb-3" />
           <p className="font-bold text-gray-900">Ledger Clear</p>
-          <p className="text-xs text-gray-400 mt-0.5">No tax evaluation items are recorded in the accounting cache.</p>
+          <p className="text-xs text-gray-400 mt-0.5">No tax records have been automatically compiled yet.</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-200/90 shadow-sm overflow-hidden">
@@ -77,13 +71,7 @@ const ManageTaxes = () => {
               <tbody className="divide-y divide-gray-100 text-gray-700">
                 {taxes.map((t) => (
                   <tr key={t.id} className="hover:bg-gray-50/40 transition-colors align-middle group">
-                    
-                    {/* Invoice ID */}
-                    <td className="p-4 pl-6 font-mono text-xs text-gray-400">
-                      #{t.id}
-                    </td>
-                    
-                    {/* Assigned Citizen */}
+                    <td className="p-4 pl-6 font-mono text-xs text-gray-400">#{t.id}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-white transition-colors">
@@ -92,36 +80,28 @@ const ManageTaxes = () => {
                         <span className="font-bold text-gray-900">{t.userName || "Unknown Resident"}</span>
                       </div>
                     </td>
-                    
-                    {/* Tax Variant */}
                     <td className="p-4">
                       <span className="inline-flex items-center font-mono text-xs font-bold tracking-wide text-gray-700 bg-gray-50 border border-gray-200/60 px-2.5 py-1 rounded-lg">
                         {t.taxType}
                       </span>
                     </td>
-                    
-                    {/* Statement Value */}
                     <td className="p-4">
                       <div className="flex items-center gap-0.5 font-extrabold text-gray-900">
                         <IndianRupee className="w-3.5 h-3.5 stroke-[2.5]" />
                         <span>{t.amount?.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
                       </div>
                     </td>
-                    
-                    {/* Due Date */}
                     <td className="p-4">
                       <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
                         <Calendar className="w-3.5 h-3.5 text-gray-400" />
                         <span>{formatDate(t.dueDate)}</span>
                       </div>
                     </td>
-                    
-                    {/* Payment Status Badge */}
                     <td className="p-4 pr-6 text-right">
                       <span className={`inline-flex items-center gap-1.5 text-[10px] font-extrabold px-2.5 py-1 rounded-full border uppercase tracking-wider ${
                         t.status === "PAID" 
                           ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
-                          : "bg-rose-50 text-rose-700 border-rose-100"
+                          : "bg-amber-50 text-amber-700 border-amber-100"
                       }`}>
                         {t.status === "PAID" ? (
                           <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
@@ -131,7 +111,6 @@ const ManageTaxes = () => {
                         <span>{t.status}</span>
                       </span>
                     </td>
-
                   </tr>
                 ))}
               </tbody>

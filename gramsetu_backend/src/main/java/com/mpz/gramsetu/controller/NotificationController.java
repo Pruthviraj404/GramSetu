@@ -20,7 +20,7 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationService notificationService;
-
+    
     private User getLoggedUser(){
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }

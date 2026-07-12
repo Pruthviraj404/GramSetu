@@ -109,7 +109,7 @@ const AdminDashboard = () => {
   ];
 
 
-  return (
+ return (
     <div className="space-y-6 max-w-7xl mx-auto px-2 py-4">
 
       {/* 1. Page Header Frame */}
@@ -200,15 +200,6 @@ const AdminDashboard = () => {
           >
             <Megaphone className="w-4 h-4 stroke-[2.2]" />
             <span>Broadcast Central Alert</span>
-          </button>
-
-          {/* Dispatch Water Alert */}
-          <button
-            onClick={() => navigate("/admin/notifications")}
-            className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-blue-700 border border-gray-200 font-bold px-5 py-3 rounded-xl text-sm transition-all shadow-sm cursor-pointer"
-          >
-            <Droplets className="w-4 h-4 text-blue-500 stroke-[2.2]" />
-            <span>Dispatch Water Alert</span>
           </button>
         </div>
       </div>

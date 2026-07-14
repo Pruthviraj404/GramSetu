@@ -22,5 +22,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByIsApprovedFalse();
 
+
+    List<User>findByArea(String areaName);
+
     long countByRole(Role role);
 }

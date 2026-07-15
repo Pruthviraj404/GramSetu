@@ -43,6 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/taxes").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/taxes").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/taxes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/taxes/remind-pending").hasRole("ADMIN")
 
                         // ===== Payments — citizen =====
                         .requestMatchers(HttpMethod.POST, "/api/payments/create-order").authenticated()

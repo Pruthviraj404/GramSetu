@@ -1,55 +1,123 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect ,useRef} from "react";
 import API from "../../api/axios";
-import { 
-  Receipt, 
-  CheckCircle2, 
-  AlertCircle, 
-  User, 
+import {
+  Receipt,
+  CheckCircle2,
+  AlertCircle,
+  User,
   Calendar,
   IndianRupee,
   Activity,
   Search,
   ChevronDown,
   ChevronUp,
-  Edit2
+  Edit2,
+  BellRing
 } from "lucide-react";
+
+import toast from "react-hot-toast";
 
 const ManageTaxes = () => {
   const [taxes, setTaxes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [expandedUserId, setExpandedUserId] = useState(null);
 
+  const [activeTab, setActiveTab] = useState("ALL");
+  const [isSendingReminders, setIsSendingReminders] = useState(false);
 
-  const [searchTerm,setSearchTerm] = useState("");
-  const[expandedUserId,setExpandedUserId]= useState(null);
+  const pollIntervalRef = useRef(null);
 
+  const checkReminderStatus = async () => {
+    try {
+      const res =  await API.get("/api/taxes/remind-status");
 
-  
-useEffect(()=>{
-  fetchTaxes();
-},[]);
+      if (!res.data.isProcessing) {
+        setIsSendingReminders(false);
 
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
 
-  const fetchTaxes=()=>{
-    API.get("/api/taxes").then((res)=>setTaxes(res.data)).catch((err)=>console.error("Failed to sync finincial ledgers:",err))
-    .finally(()=>setLoading(false));
+        }
+
+        toast.success("All pending reminder emails have been sent completely")
+        fetchTaxes();
+
+      }
+    } catch (err) {
+      console.error("Tracking metrics engine connection drops:", err);
+
+    }
   }
 
 
-  const handleStatusChange=(taxId,newStatus)=>{
+
+
+  useEffect(() => {
+    fetchTaxes();
+
+    API.get("/api/taxes/remind-status").then((res) => {
+      if (res.data.isProcessing) {
+        setIsSendingReminders(true);
+        if (!pollIntervalRef.current) {
+          pollIntervalRef.current = setInterval(checkReminderStatus, 4000);
+
+        }
+      }
+    }).catch((err) => console.error("Initial layout lock mapping fail:", err));
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, []);
+
+
+  const fetchTaxes = () => {
+    API.get("/api/taxes").then((res) => setTaxes(res.data)).catch((err) => console.error("Failed to sync finincial ledgers:", err))
+      .finally(() => setLoading(false));
+  }
+
+
+  const handleStatusChange = (taxId, newStatus) => {
 
     const confirmChange = window.confirm(
-    `Are you sure you want to change the status of invoice #${taxId} to ${newStatus}?`
-  );
+      `Are you sure you want to change the status of invoice #${taxId} to ${newStatus}?`
+    );
 
 
-  if (!confirmChange) {
-    return;
-  }
-    API.put(`/api/taxes/${taxId}?status=${newStatus}`).then(()=>{
+    if (!confirmChange) {
+      return;
+    }
+    API.put(`/api/taxes/${taxId}?status=${newStatus}`).then(() => {
       fetchTaxes();
-    }).catch((err)=>console.error("Failed to modify invoice billing state:",err));
+    }).catch((err) => console.error("Failed to modify invoice billing state:", err));
 
   };
+
+  const handleSendTaxReminders = async () => {
+    if (isSendingReminders) return;
+    setIsSendingReminders(true);
+    try {
+      await API.post("/api/taxes/remind-pending");
+      toast.success("Email engine triggered. Button will remain locked until process finishes.");
+
+      if (!pollIntervalRef.current) {
+        pollIntervalRef.current = setInterval(checkReminderStatus, 4000);
+      }
+
+
+    } catch (err) {
+      console.error("Failed to deploy communication loops:", error);
+      toast.error("Failed to dispatch reminders. Please check backend service layers.");
+      setIsSendingReminders(false);
+
+
+    }
+  };
+
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
@@ -63,6 +131,9 @@ useEffect(()=>{
   const groupTaxesByUser = () => {
     const groups = {};
     taxes.forEach((tax) => {
+      if (activeTab === "PENDING" && tax.status !== "PENDING") return;
+      if (activeTab === "PAID" && tax.status !== "PAID") return;
+
       const uId = tax.userId;
       if (!groups[uId]) {
         groups[uId] = {
@@ -89,11 +160,9 @@ useEffect(()=>{
 
 
 
-
-
-return (
+  return (
     <div className="space-y-6 p-1 max-w-7xl mx-auto">
-      {/* Structural Header Context Block */}
+
       <div className="border-b border-gray-100 pb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 tracking-tight sm:text-3xl">
@@ -104,7 +173,6 @@ return (
           </p>
         </div>
 
-        {/* 🟢 NEW: Live Interactive Search Input Element */}
         <div className="relative w-full md:w-80">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
             <Search className="h-4 w-4" />
@@ -119,7 +187,39 @@ return (
         </div>
       </div>
 
-      {/* LEDGER DATA VIEW GRID */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 p-1.5 rounded-xl border border-gray-200/60">
+        <div className="flex items-center gap-1">
+          {["ALL", "PENDING", "PAID"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => {
+                setActiveTab(tab);
+                setExpandedUserId(null);
+              }}
+              className={`text-xs font-bold px-4 py-2 rounded-lg tracking-wider uppercase transition-all duration-200 ${activeTab === tab
+                  ? "bg-white text-gray-900 shadow-sm border border-gray-200/40 font-extrabold"
+                  : "text-gray-400 hover:text-gray-700 hover:bg-white/40 font-semibold"
+                }`}
+            >
+              {tab === "ALL" && "All Registers"}
+              {tab === "PENDING" && "Pending"}
+              {tab === "PAID" && "Paid"}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "PENDING" && filteredResidents.length > 0 && (
+          <button
+            onClick={handleSendTaxReminders}
+            disabled={isSendingReminders}
+            className="flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white text-xs font-bold py-2 px-4 rounded-lg tracking-wide uppercase transition-all shadow-sm active:scale-95"
+          >
+            <BellRing size={14} className={isSendingReminders ? "animate-spin text-gray-400" : ""} />
+            {isSendingReminders ? "Sending Mails... Button Locked" : "Send Reminders to Defaulters"}
+          </button>
+        )}
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center py-20 text-gray-400 text-sm font-medium animate-pulse">
           <Activity className="animate-spin h-5 w-5 mr-3 text-gray-500" />
@@ -129,7 +229,9 @@ return (
         <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl text-gray-400 text-sm shadow-sm flex flex-col items-center justify-center">
           <Receipt className="w-10 h-10 text-gray-300 mb-3" />
           <p className="font-bold text-gray-900">No Records Found</p>
-          <p className="text-xs text-gray-400 mt-0.5">No resident profiles match your given search parameters.</p>
+          <p className="text-xs text-gray-400 mt-0.5">
+            No active resident bills correspond with the "{activeTab}" status conditions.
+          </p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-200/90 shadow-sm overflow-hidden">
@@ -149,8 +251,7 @@ return (
                   const isExpanded = expandedUserId === resident.userId;
                   return (
                     <React.Fragment key={resident.userId}>
-                      {/* Parent Resident Row Row displays exactly once per individual */}
-                      <tr 
+                      <tr
                         onClick={() => toggleExpandRow(resident.userId)}
                         className="hover:bg-gray-50/60 cursor-pointer transition-colors align-middle group font-medium"
                       >
@@ -178,7 +279,6 @@ return (
                         </td>
                       </tr>
 
-                      {/* 🟢 NEW: Nested Sub-Table Row block displaying all items belonging to the clicked resident */}
                       {isExpanded && (
                         <tr>
                           <td colSpan="5" className="bg-gray-50/40 p-6 border-t border-b border-gray-100">
@@ -211,16 +311,14 @@ return (
                                       </td>
                                       <td className="p-3 text-gray-500">{formatDate(bill.dueDate)}</td>
                                       <td className="p-3">
-                                        <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full border uppercase ${
-                                          bill.status === "PAID" 
-                                            ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
+                                        <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full border uppercase ${bill.status === "PAID"
+                                            ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                                             : "bg-amber-50 text-amber-700 border-amber-100"
-                                        }`}>
+                                          }`}>
                                           {bill.status === "PAID" ? <CheckCircle2 className="w-2.5 h-2.5" /> : <AlertCircle className="w-2.5 h-2.5" />}
                                           {bill.status}
                                         </span>
                                       </td>
-                                      {/* 🟢 NEW: Inline Status Custom Modifier Form Selector Dropdown */}
                                       <td className="p-3 pr-5 text-right">
                                         <div className="inline-flex items-center gap-1.5 justify-end">
                                           <Edit2 className="w-3 h-3 text-gray-400" />

@@ -25,6 +25,9 @@ public interface TaxRepository extends JpaRepository<Tax,Long> {
 
      @Query("SELECT SUM(t.amount) FROM Tax t WHERE t.status = :status")
     Double sumAmountByStatus(@Param("status") TaxStatus status);
+
+    @Query("SELECT t From Tax t JOIN FETCH t.user WHERE t.status ='PENDING' ")
+    List<Tax>findPendingTaxesWithUsers();
    
 
 

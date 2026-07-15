@@ -13,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/taxes")
@@ -26,6 +28,30 @@ public class TaxController {
                 .getAuthentication()
                 .getPrincipal();
     }
+
+
+
+    
+
+    @PostMapping("/remind-pending")
+    public ResponseEntity<?> triggerReminders(){
+
+        if(taxService.isCurrentlyProcessing()){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error","Tax reminder execution is already  in progress."));
+
+        }
+        taxService.sendBulkTaxReminders();
+        return ResponseEntity.ok(Map.of("Message","Tax reminders initiated asynchronously in backgound!"));
+
+    }
+
+    
+    @GetMapping("/remind-status")
+    public ResponseEntity<?>getReminderStatus(){
+        return ResponseEntity.ok(Map.of("isProcessing",taxService.isCurrentlyProcessing()));
+        
+    }
+    
 
 
    

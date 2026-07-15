@@ -1,6 +1,9 @@
 <div align="center">
-  <img src="gramsetu_frontend/public/logo.png" width="120" alt="GramSetu Logo" onerror="this.src='https://github.com/user-attachments/assets/6afcbe9d-f421-4d37-8ffc-132cf05d21e1'"/>
+  <img width="150" height="150" alt="Gemini_Generated_Image_1cw1cl1cw1cl1cw1 (1)" src="https://github.com/user-attachments/assets/f02f6173-cfc8-4a79-a85e-3e8e30b7c5a7" />
 </div>
+
+
+
 
 <h1 align="center">GramSetu</h1>
 

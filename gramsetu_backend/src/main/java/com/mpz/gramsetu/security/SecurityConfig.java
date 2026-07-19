@@ -125,7 +125,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000", // React default
-                "http://localhost:5173" // Vite default
+                "http://localhost:5173", // Vite default
+                "http://13.50.100.82"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

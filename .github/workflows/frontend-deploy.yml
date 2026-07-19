@@ -1,0 +1,47 @@
+name: Frontend CI/CD Pipeline
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - 'gramsetu_frontend/**'
+
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+        
+        steps:
+          - name: Checkout Code
+            uses: actions/checkout@v3
+          
+          - name: Log in Docker Hub
+            uses: docker/login-action@v2
+            with:
+              username: ${{ secrets.DOCKERHUB_USERNAME }}
+              password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+          - name: Build and Push Docker Image
+            uses: docker/build-push-action@v4
+            with:
+              context: ./gramsetu_frontend
+              push: true
+              build-args: |
+                VITE_API_URL=http://13.50.100.82:9090
+              tags: pruthviraj404/gramsetu_frontend:v2
+
+          - name: Deploy to AWS EC2 via SSH
+            uses: appleboy/ssh-action@v0.1.10
+            with:
+              host: ${{ secrets.EC2_HOST }}
+              username: ${{ secrets.EC2_USER }}
+              key: ${{ secrets.EC2_SSH_KEY }}
+              script: |
+                docker stop gramsetu_frontend_prod || true
+                docker rm gramsetu_frontend_prod || true
+                docker pull pruthviraj404/gramsetu_frontend:v2
+                docker run -d -p 80:80 \
+                --name gramsetu_frontend_prod \
+                --restart unless-stopped \
+                pruthviraj404/gramsetu_frontend:v2
+

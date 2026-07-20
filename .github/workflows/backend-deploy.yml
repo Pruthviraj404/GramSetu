@@ -56,6 +56,7 @@ jobs:
                 docker run -d \
                   -p 9090:8081 \
                   --name gramsetu_backend_prod \
+                  --env-file .env \
                   --restart unless-stopped \
                   pruthviraj404/gramsetu_backend:v1
 

@@ -10,6 +10,7 @@ import com.mpz.gramsetu.repository.UserRepository;
 import com.mpz.gramsetu.security.JwtUtil;
 import com.mpz.gramsetu.service.OtpService;
 import com.mpz.gramsetu.service.SignupService;
+import com.mpz.gramsetu.service.NotificationMailingService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,6 +34,8 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
+    private final NotificationMailingService notificationMailingService;
+
     @PostMapping("/register")
     public ResponseEntity<SignupResponse> register(@Valid @RequestBody SignupRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(signupService.register(request));
@@ -40,14 +44,28 @@ public class AuthController {
 
     @PostMapping("/send-otp")
     public ResponseEntity<String> sendOtp(@RequestBody SendOtpRequest request) {
-        if (!userRepository.existsByMobileNumber(request.mobileNumber())) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mobile number not registered. Gram Panchayat.");
+        Optional<User> userOptional = userRepository.findByMobileNumber(request.mobileNumber());
+
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Mobile number not registered . Gram Panchayat");
+
         }
 
+        User user = userOptional.get();
+        String userEmail = user.getEmail();
+
+        if(userEmail==null || userEmail.isBlank()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Email not registered for this mobile number. Contact Gram Panchayat Office.");
+        }
+
+
         String otp = otpService.generateAndStoreOtp(request.mobileNumber());
+
         System.out.println("OTp for " + request.mobileNumber() + ":" + otp);
 
-        return ResponseEntity.ok("Otp sent successfully !!!.");
+        notificationMailingService.sendEmailAlert(userEmail, "Login Verification", otp, "OTP");
+
+        return ResponseEntity.ok("Otp sent successfully to your registered email");
 
     }
 
@@ -62,7 +80,7 @@ public class AuthController {
 
         String token = jwtUtil.generateToken(user.getMobileNumber(), user.getRole().name());
 
-        return ResponseEntity.ok(new AuthResponse(token, user.getRole().name(), user.getName(),user.isApproved()));
+        return ResponseEntity.ok(new AuthResponse(token, user.getRole().name(), user.getName(), user.isApproved()));
 
     }
 

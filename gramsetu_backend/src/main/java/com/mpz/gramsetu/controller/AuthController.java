@@ -47,7 +47,7 @@ public class AuthController {
         String otp = otpService.generateAndStoreOtp(request.mobileNumber());
         System.out.println("OTp for " + request.mobileNumber() + ":" + otp);
 
-        return ResponseEntity.ok("Otp  sent successfully !!.");
+        return ResponseEntity.ok("Otp  sent successfully !!!.");
 
     }
 

@@ -5,7 +5,7 @@ on:
     push:
         branches: [main]
         paths:
-          - 'gramsetu_backend/**'
+            - 'gramsetu_backend/**'
 
 jobs:
     build-and-deploy:
